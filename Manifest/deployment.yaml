@@ -1,0 +1,29 @@
+  namespace: final
+  labels:
+    appname: node-app-deployment
+    component: frontend
+spec:
+  selector:
+    matchLabels:
+      appname: node-app-deployment
+      component: frontend
+  template:
+    metadata:
+      labels:
+        appname: node-app-deployment
+        component: frontend
+    spec:
+      containers:
+      - name: node-app
+        image: 584918656742.dkr.ecr.us-east-1.amazonaws.com/final_project:g13
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+          - mountPath: /tmp/data
+            name: app-final-volume
+      imagePullSecrets:
+        - name: creds-test
+      volumes:
+        - name: app-final-volume
+          persistentVolumeClaim:
+            claimName: app-final-pvc
