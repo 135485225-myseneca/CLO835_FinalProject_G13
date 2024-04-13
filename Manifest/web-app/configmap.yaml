@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap
+  namespace: final  
+data:
+  bucket: "clo835-project" 
+  bgimg: "/static/background.jpeg"  
+  grpname: "Group 13"  
+  groupslogan: "One Day at a Time" 
