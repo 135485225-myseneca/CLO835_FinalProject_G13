@@ -1,8 +1,8 @@
 name: Deploy to ECR
 
-on: 
+on:
   push:
-    branches: [ dev ]
+    branches: [dev]
 
 jobs:
 
@@ -27,17 +27,21 @@ jobs:
 
     # Step to enable immutability for the 'mysql-db' repository
     - name: Enable immutability for database repository
+      env:
+        AWS_EC2_METADATA_DISABLED: true
       run: |
         aws ecr put-image-tag-mutability \
           --repository-name mysql-db \
-          --image-tag-mutability IMMUTABLE
-        
+          --image-tag-mutability IMMUTABLE \
+          --region us-east-1
+
     # Build, test, tag, and push image to Amazon ECR database
     - name: Build, test, tag, and push image to Amazon ECR database
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: mysql-db  
         IMAGE_TAG_MYSQL: my_db
+        AWS_EC2_METADATA_DISABLED: true
       run: |
         # Docker build image database
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_MYSQL -f Dockerfile_mysql .
@@ -46,17 +50,21 @@ jobs:
         
     # Step to enable immutability for the 'web-app' repository
     - name: Enable immutability for web app repository
+      env:
+        AWS_EC2_METADATA_DISABLED: true
       run: |
         aws ecr put-image-tag-mutability \
           --repository-name web-app \
-          --image-tag-mutability IMMUTABLE
-        
+          --image-tag-mutability IMMUTABLE \
+          --region us-east-1
+
     # Build, test, tag, and push image for Amazon ECR app
     - name: Build, test, tag, and push image for Amazon ECR app
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: web-app
         IMAGE_TAG_WEBAPP: web_app
+        AWS_EC2_METADATA_DISABLED: true
       run: |
         # Docker build app
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_WEBAPP -f Dockerfile .
