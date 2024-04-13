@@ -1,14 +1,18 @@
 name: Deploy to ECR
 
-on:
+on: 
   push:
-    branches: [dev]
+    branches: [ dev ]
 
 jobs:
+
   build:
+
     name: Build Image
     runs-on: ubuntu-latest
+
     steps:
+
     - name: Check out code
       uses: actions/checkout@v3
 
@@ -21,74 +25,40 @@ jobs:
         AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
         AWS_REGION: us-east-1
 
-    - name: Check if image exists in ECR (database)
-      id: check-db
+    # Step to enable immutability for the 'mysql-db' repository
+    - name: Enable immutability for database repository
       run: |
-        IMAGE_EXISTS=$(aws ecr describe-images \
+        aws ecr put-image-tag-mutability \
           --repository-name mysql-db \
-          --image-ids imageTag=my_db \
-          --query 'imageDetails[0]' \
-          --output text 2>&1)
-        if [ $? -ne 0 ]; then
-          echo "Error executing aws ecr describe-images: $IMAGE_EXISTS"
-          exit 1
-        fi
-
-        if [ -n "$IMAGE_EXISTS" ]; then
-          echo "Image already exists in ECR: $IMAGE_EXISTS"
-          echo "::set-output name=exists::true"
-        else
-          echo "Image does not exist in ECR."
-          echo "::set-output name=exists::false"
-
-    - name: Fail if image exists (database)
-      if: steps.check-db.outputs.exists == 'true'
-      run: |
-        echo "Image already exists in ECR repository. Pipeline will fail."
-        exit 1
-
+          --image-tag-mutability IMMUTABLE
+        
+    # Build, test, tag, and push image to Amazon ECR database
     - name: Build, test, tag, and push image to Amazon ECR database
-      if: steps.check-db.outputs.exists == 'false'
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: mysql-db
+        ECR_REPOSITORY: mysql-db  
         IMAGE_TAG_MYSQL: my_db
       run: |
+        # Docker build image database
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_MYSQL -f Dockerfile_mysql .
+        # Docker push image
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_MYSQL
-
-    - name: Check if image exists in ECR (web app)
-      id: check-web-app
+        
+    # Step to enable immutability for the 'web-app' repository
+    - name: Enable immutability for web app repository
       run: |
-        IMAGE_EXISTS=$(aws ecr describe-images \
+        aws ecr put-image-tag-mutability \
           --repository-name web-app \
-          --image-ids imageTag=web_app \
-          --query 'imageDetails[0]' \
-          --output text 2>&1)
-        if [ $? -ne 0 ]; then
-          echo "Error executing aws ecr describe-images: $IMAGE_EXISTS"
-          exit 1
-        fi
-
-        if [ -n "$IMAGE_EXISTS" ]; then
-          echo "Image already exists in ECR: $IMAGE_EXISTS"
-          echo "::set-output name=exists::true"
-        else
-          echo "Image does not exist in ECR."
-          echo "::set-output name=exists::false"
-
-    - name: Fail if image exists (web app)
-      if: steps.check-web-app.outputs.exists == 'true'
-      run: |
-        echo "Image already exists in ECR repository. Pipeline will fail."
-        exit 1
-
+          --image-tag-mutability IMMUTABLE
+        
+    # Build, test, tag, and push image for Amazon ECR app
     - name: Build, test, tag, and push image for Amazon ECR app
-      if: steps.check-web-app.outputs.exists == 'false'
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: web-app
         IMAGE_TAG_WEBAPP: web_app
       run: |
+        # Docker build app
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_WEBAPP -f Dockerfile .
+        # Docker push
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_WEBAPP
