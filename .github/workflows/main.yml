@@ -28,8 +28,13 @@ jobs:
           --repository-name mysql-db \
           --image-ids imageTag=my_db \
           --query 'imageDetails[0]' \
-          --output text)
-        if [ "$IMAGE_EXISTS" ]; then
+          --output text 2>&1)
+        if [ $? -ne 0 ]; then
+          echo "Error executing aws ecr describe-images: $IMAGE_EXISTS"
+          exit 1
+        fi
+
+        if [ -n "$IMAGE_EXISTS" ]; then
           echo "Image already exists in ECR: $IMAGE_EXISTS"
           echo "::set-output name=exists::true"
         else
@@ -49,9 +54,7 @@ jobs:
         ECR_REPOSITORY: mysql-db
         IMAGE_TAG_MYSQL: my_db
       run: |
-        # Docker build image database
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_MYSQL -f Dockerfile_mysql .
-        # Docker push image
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_MYSQL
 
     - name: Check if image exists in ECR (web app)
@@ -61,8 +64,13 @@ jobs:
           --repository-name web-app \
           --image-ids imageTag=web_app \
           --query 'imageDetails[0]' \
-          --output text)
-        if [ "$IMAGE_EXISTS" ]; then
+          --output text 2>&1)
+        if [ $? -ne 0 ]; then
+          echo "Error executing aws ecr describe-images: $IMAGE_EXISTS"
+          exit 1
+        fi
+
+        if [ -n "$IMAGE_EXISTS" ]; then
           echo "Image already exists in ECR: $IMAGE_EXISTS"
           echo "::set-output name=exists::true"
         else
@@ -82,8 +90,5 @@ jobs:
         ECR_REPOSITORY: web-app
         IMAGE_TAG_WEBAPP: web_app
       run: |
-        # Docker build app
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_WEBAPP -f Dockerfile .
-        # Docker push
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_WEBAPP
-        
