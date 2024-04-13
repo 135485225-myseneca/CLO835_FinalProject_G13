@@ -1,19 +1,14 @@
 name: Deploy to ECR
 
-on: 
+on:
   push:
-    branches: [ dev ]
+    branches: [dev]
 
 jobs:
-
   build:
-
     name: Build Image
     runs-on: ubuntu-latest
-
-
     steps:
-
     - name: Check out code
       uses: actions/checkout@v3
 
@@ -26,19 +21,62 @@ jobs:
         AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
         AWS_REGION: us-east-1
 
+    - name: Check if image exists in ECR (database)
+      id: check-db
+      run: |
+        IMAGE_EXISTS=$(aws ecr describe-images \
+          --repository-name mysql-db \
+          --image-ids imageTag=my_db \
+          --query 'imageDetails[0]' \
+          --output text)
+        if [ "$IMAGE_EXISTS" ]; then
+          echo "Image already exists in ECR: $IMAGE_EXISTS"
+          echo "::set-output name=exists::true"
+        else
+          echo "Image does not exist in ECR."
+          echo "::set-output name=exists::false"
+
+    - name: Fail if image exists (database)
+      if: steps.check-db.outputs.exists == 'true'
+      run: |
+        echo "Image already exists in ECR repository. Pipeline will fail."
+        exit 1
+
     - name: Build, test, tag, and push image to Amazon ECR database
+      if: steps.check-db.outputs.exists == 'false'
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: mysql-db  
+        ECR_REPOSITORY: mysql-db
         IMAGE_TAG_MYSQL: my_db
-        
       run: |
         # Docker build image database
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_MYSQL -f Dockerfile_mysql .
         # Docker push image
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_MYSQL
-        
+
+    - name: Check if image exists in ECR (web app)
+      id: check-web-app
+      run: |
+        IMAGE_EXISTS=$(aws ecr describe-images \
+          --repository-name web-app \
+          --image-ids imageTag=web_app \
+          --query 'imageDetails[0]' \
+          --output text)
+        if [ "$IMAGE_EXISTS" ]; then
+          echo "Image already exists in ECR: $IMAGE_EXISTS"
+          echo "::set-output name=exists::true"
+        else
+          echo "Image does not exist in ECR."
+          echo "::set-output name=exists::false"
+
+    - name: Fail if image exists (web app)
+      if: steps.check-web-app.outputs.exists == 'true'
+      run: |
+        echo "Image already exists in ECR repository. Pipeline will fail."
+        exit 1
+
     - name: Build, test, tag, and push image for Amazon ECR app
+      if: steps.check-web-app.outputs.exists == 'false'
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: web-app
