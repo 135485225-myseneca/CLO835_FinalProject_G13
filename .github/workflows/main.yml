@@ -11,6 +11,7 @@ jobs:
     name: Build Image
     runs-on: ubuntu-latest
 
+
     steps:
 
     - name: Check out code
@@ -25,35 +26,18 @@ jobs:
         AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
         AWS_REGION: us-east-1
 
-    # Step to enable immutability for the 'mysql-db' repository
-    - name: Enable immutability for database repository
-      run: |
-        aws ecr put-image-tag-mutability \
-          --repository-name mysql-db \
-          --image-tag-mutability IMMUTABLE \
-          --region us-east-1
-        
-    # Build, test, tag, and push image to Amazon ECR database
     - name: Build, test, tag, and push image to Amazon ECR database
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: mysql-db  
         IMAGE_TAG_MYSQL: my_db
+        
       run: |
         # Docker build image database
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_MYSQL -f Dockerfile_mysql .
         # Docker push image
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_MYSQL
         
-    # Step to enable immutability for the 'web-app' repository
-    - name: Enable immutability for web app repository
-      run: |
-        aws ecr put-image-tag-mutability \
-          --repository-name web-app \
-          --image-tag-mutability IMMUTABLE \
-          --region us-east-1
-        
-    # Build, test, tag, and push image for Amazon ECR app
     - name: Build, test, tag, and push image for Amazon ECR app
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
