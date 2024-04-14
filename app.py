@@ -29,26 +29,11 @@ db_conn = connections.Connection(
 # Initialize AWS S3 client
 s3 = boto3.client('s3', region_name=AWS_REGION_NAME)
 
-# Function to download a random image from S3 bucket
-def download_random_image_from_s3(bucket_name):
-    try:
-        # List objects in the bucket
-        response = s3.list_objects_v2(Bucket=bucket_name)
-        # Extract the list of image keys
-        image_keys = [obj['Key'] for obj in response.get('Contents', [])]
-        # Choose a random image key
-        random_image_key = random.choice(image_keys)
-        return random_image_key
-    except NoCredentialsError:
-        print("Credentials not available.")
-
 # Specify local path to store the downloaded image
 BACKGROUND_IMAGE_PATH = 'static/background.jpeg'
 
 # Download a random image from S3 bucket
 def download_background_image():
-    random_image_key = download_random_image_from_s3(AWS_BUCKET_NAME)
-    if random_image_key:
         s3.download_file(AWS_BUCKET_NAME, random_image_key, BACKGROUND_IMAGE_PATH)
 
 # Route for home page
