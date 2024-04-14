@@ -9,7 +9,12 @@
 		<h1 style="color: DodgerBlue">Employee Information</h1>
 
 		<body style="background-image: url('{{ background_image }}');">
-
+			
+            <header style="color: DodgerBlue">
+			    <h1>{{ group_name }}</h1>
+			    <p><i>{{ group_slogan }}</i></p>
+			</header>
+			
 			<form action="/fetchdata" autocomplete="on" method="POST">
 
 				<h2 style="color: grey">Enter Employee ID</h2>
