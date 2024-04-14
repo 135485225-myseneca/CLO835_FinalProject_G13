@@ -8,8 +8,8 @@ from botocore.exceptions import NoCredentialsError, ClientError
 app = Flask(__name__)
 
 # Retrieve values from ConfigMap
-bucket_name = os.environ.get('bucket') or "clo835-project" 
-bg_image_url = os.environ.get('bgimg') or "https://project-clo835.s3.amazonaws.com/101.jpg" 
+bucket_name = os.environ.get('bucket') or "project-clo835-l" 
+bg_image_url = os.environ.get('bgimg') or "https://project-clo835-l.s3.amazonaws.com/background-images-1.jpg" 
 group_name = os.environ.get('grpname') or "Group 13" 
 group_slogan = os.environ.get('groupslogan') or "One Day at a Time"
 
