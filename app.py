@@ -36,7 +36,7 @@ s3 = boto3.client('s3', region_name=AWS_REGION_NAME)
 BACKGROUND_IMAGE_PATH = 'static/background.jpeg'
 
 # Download a random image from S3 bucket
-@app.before_request
+@app.before_request -- decorator to allow to define a function that will be executed before each request to Flask application
 def download_background_image():
     s3 = boto3.client('s3', aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key)
 
