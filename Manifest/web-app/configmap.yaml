@@ -5,6 +5,6 @@ metadata:
   namespace: final  
 data:
   bucket: "clo835-project" 
-  bgimg: "/static/background.jpeg"  
+  bgimg: "https://project-clo835.s3.amazonaws.com/101.jpg"  
   grpname: "Group 13"  
   groupslogan: "One Day at a Time" 
