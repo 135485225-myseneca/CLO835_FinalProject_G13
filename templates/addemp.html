@@ -3,11 +3,17 @@
 <head>
 	<title>Add Employee Information</title>
 </head>
+
 <center>
 	<font color="black" size="4" style="font-family: avenir">
-
+		<header style="color: DodgerBlue">
+			    <h1>{{ group_name }}</h1>
+			    <p><i>{{ group_slogan }}</i></p>
+		</header>
 		<h1 style="color: DodgerBlue">Employee Database</h1>
 		<body style="background-image: url('{{ background_image }}');">
+			
+			
 
 			<form action="/addemp" autocomplete="on" method = "POST" enctype="multipart/form-data">
 
