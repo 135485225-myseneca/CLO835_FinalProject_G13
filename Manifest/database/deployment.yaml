@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: mysql
-        image: 055686730858.dkr.ecr.us-east-1.amazonaws.com/mysql-db:my_db
+        image: 84918656742.dkr.ecr.us-east-1.amazonaws.com/mysql-db:my_db
         ports:
         - containerPort: 3306
         env:
@@ -30,7 +30,7 @@ spec:
         - mountPath: /tmp/data
           name: final-pv
       imagePullSecrets:
-      - name: creds-test-1
+      - name: creds-test
       volumes:
       - name: final-pv
         persistentVolumeClaim:
