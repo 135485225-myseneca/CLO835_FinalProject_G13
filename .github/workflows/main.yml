@@ -34,7 +34,7 @@ jobs:
         
       run: |
         # Docker build image database
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_MYSQL -f Dockerfile_mysql .
+        docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_MYSQL -f Dockerfile_mysql .
         # Docker push image
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_MYSQL
         
@@ -45,6 +45,6 @@ jobs:
         IMAGE_TAG_WEBAPP: web_app
       run: |
         # Docker build app
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_WEBAPP -f Dockerfile .
+        docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_WEBAPP -f Dockerfile .
         # Docker push
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_WEBAPP
