@@ -8,20 +8,20 @@ from botocore.exceptions import NoCredentialsError, ClientError
 app = Flask(__name__)
 
 # Retrieve values from ConfigMap
-bucket_name = os.environ.get('bucket') 
-bg_image_url = os.environ.get('bgimg')
-group_name = os.environ.get('grpname')
-group_slogan = os.environ.get('groupslogan')
+bucket_name = os.environ.get('bucket') or "clo835-project" 
+bg_image_url = os.environ.get('bgimg') or "https://project-clo835.s3.amazonaws.com/101.jpg" 
+group_name = os.environ.get('grpname') or "Group 13" 
+group_slogan = os.environ.get('groupslogan') or "One Day at a Time"
 
 # Retrieve AWS credentials from K8s secrets
 aws_access_key = os.environ.get('AWS_ACCESS_KEY')
 aws_secret_key = os.environ.get('AWS_SECRET_KEY')
 
 # Retrieve MySQL credentials from K8s secrets
-DBHOST = os.environ.get("DBHOST")
-DBUSER = os.environ.get("DBUSER")
-DBPWD = os.environ.get("DBPWD")
-DATABASE = os.environ.get("DATABASE")
+DBHOST = os.environ.get("DBHOST") or "localhost"
+DBUSER = os.environ.get("DBUSER") or "root"
+DBPWD = os.environ.get("DBPWD") or "passwors"
+DATABASE = os.environ.get("DATABASE") or "employees"
 DBPORT = int(os.environ.get("DBPORT", '3306'))
 
 # Specify local path to store the downloaded image
