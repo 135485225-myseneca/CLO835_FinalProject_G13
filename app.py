@@ -1,58 +1,68 @@
 from flask import Flask, render_template, request
 from pymysql import connections
 import os
-import random
-import argparse
+import boto3
+from botocore.exceptions import NoCredentialsError, ClientError
 
-
+# Initialize Flask app
 app = Flask(__name__)
 
-DBHOST = os.environ.get("DBHOST") or "localhost"
-DBUSER = os.environ.get("DBUSER") or "root"
-DBPWD = os.environ.get("DBPWD") or "passwors"
-DATABASE = os.environ.get("DATABASE") or "employees"
-COLOR_FROM_ENV = os.environ.get('APP_COLOR') or "lime"
-DBPORT = int(os.environ.get("DBPORT"))
+# Retrieve values from ConfigMap
+bucket_name = os.environ.get('bucket') or "project-clo835"
+bg_image_url = os.environ.get('bgimg') or "https://project-clo835.s3.amazonaws.com/101.jpg"
+group_name = os.environ.get('grpname') or "Group 13"
+group_slogan = os.environ.get('groupslogan') or "One Day at a Time"
+
+# Retrieve AWS credentials from K8s secrets
+aws_access_key = os.environ.get('AWS_ACCESS_KEY')
+aws_secret_key = os.environ.get('AWS_SECRET_KEY')
+
+# Retrieve MySQL credentials from K8s secrets
+DBHOST = os.environ.get("DBHOST")
+DBUSER = os.environ.get("DBUSER")
+DBPWD = os.environ.get("DBPWD")
+DATABASE = os.environ.get("DATABASE")
+DBPORT = int(os.environ.get("DBPORT", '3306'))
+
+# Specify local path to store the downloaded image
+BACKGROUND_IMAGE_PATH = 'static/background.jpeg'
 
 # Create a connection to the MySQL database
 db_conn = connections.Connection(
-    host= DBHOST,
+    host=DBHOST,
     port=DBPORT,
-    user= DBUSER,
-    password= DBPWD, 
-    db= DATABASE
-    
+    user=DBUSER,
+    password=DBPWD,
+    db=DATABASE
 )
-output = {}
-table = 'employee';
 
-# Define the supported color codes
-color_codes = {
-    "red": "#e74c3c",
-    "green": "#16a085",
-    "blue": "#89CFF0",
-    "blue2": "#30336b",
-    "pink": "#f4c2c2",
-    "darkblue": "#130f40",
-    "lime": "#C1FF9C",
-}
+# Download the background image before each request
+@app.before_request
+def download_background_image():
+    s3 = boto3.client('s3', aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key)
 
+    try:
+        # Parse the S3 URL to get the bucket and key
+        key = bg_image_url.split(f'https://{bucket_name}.s3.amazonaws.com/')[1]
 
-# Create a string of supported colors
-SUPPORTED_COLORS = ",".join(color_codes.keys())
+        # Download the file from S3 and save it locally
+        s3.download_file(bucket_name, key, BACKGROUND_IMAGE_PATH)
+        print(f"Image downloaded successfully to {BACKGROUND_IMAGE_PATH}")
 
-# Generate a random color
-COLOR = random.choice(["red", "green", "blue", "blue2", "darkblue", "pink", "lime"])
+    except (NoCredentialsError, ClientError) as e:
+        print(f"An error occurred while downloading the image: {e}")
 
-
+# Define routes for your application
 @app.route("/", methods=['GET', 'POST'])
 def home():
-    return render_template('addemp.html', color=color_codes[COLOR])
+    return render_template('addemp.html', group_name=group_name, group_slogan=group_slogan,
+                           background_image=BACKGROUND_IMAGE_PATH)
 
-@app.route("/about", methods=['GET','POST'])
+@app.route("/about", methods=['GET', 'POST'])
 def about():
-    return render_template('about.html', color=color_codes[COLOR])
-    
+    return render_template('about.html', group_name=group_name, group_slogan=group_slogan,
+                           background_image=BACKGROUND_IMAGE_PATH)
+
 @app.route("/addemp", methods=['POST'])
 def AddEmp():
     emp_id = request.form['emp_id']
@@ -61,76 +71,58 @@ def AddEmp():
     primary_skill = request.form['primary_skill']
     location = request.form['location']
 
-  
     insert_sql = "INSERT INTO employee VALUES (%s, %s, %s, %s, %s)"
     cursor = db_conn.cursor()
 
     try:
-        
-        cursor.execute(insert_sql,(emp_id, first_name, last_name, primary_skill, location))
+        cursor.execute(insert_sql, (emp_id, first_name, last_name, primary_skill, location))
         db_conn.commit()
-        emp_name = "" + first_name + " " + last_name
-
+        emp_name = f"{first_name} {last_name}"
     finally:
         cursor.close()
 
-    print("all modification done...")
-    return render_template('addempoutput.html', name=emp_name, color=color_codes[COLOR])
+    print("All modifications done...")
+    return render_template('addempoutput.html', name=emp_name, group_name=group_name, group_slogan=group_slogan,
+                           background_image=BACKGROUND_IMAGE_PATH)
 
+   # GetEmp route
 @app.route("/getemp", methods=['GET', 'POST'])
 def GetEmp():
-    return render_template("getemp.html", color=color_codes[COLOR])
+    return render_template("getemp.html", group_name=group_name, group_slogan=group_slogan,
+                           background_image=BACKGROUND_IMAGE_PATH)
 
-
-@app.route("/fetchdata", methods=['GET','POST'])
+# FetchData route
+@app.route("/fetchdata", methods=['GET', 'POST'])
 def FetchData():
     emp_id = request.form['emp_id']
-
     output = {}
+
     select_sql = "SELECT emp_id, first_name, last_name, primary_skill, location from employee where emp_id=%s"
     cursor = db_conn.cursor()
 
     try:
-        cursor.execute(select_sql,(emp_id))
+        cursor.execute(select_sql, (emp_id,))
         result = cursor.fetchone()
         
-        # Add No Employee found form
-        output["emp_id"] = result[0]
-        output["first_name"] = result[1]
-        output["last_name"] = result[2]
-        output["primary_skills"] = result[3]
-        output["location"] = result[4]
-        
+        if result:
+            output["emp_id"] = result[0]
+            output["first_name"] = result[1]
+            output["last_name"] = result[2]
+            output["primary_skills"] = result[3]
+            output["location"] = result[4]
+        else:
+            print(f"No employee found with ID: {emp_id}")
+
     except Exception as e:
         print(e)
-
     finally:
         cursor.close()
 
-    return render_template("getempoutput.html", id=output["emp_id"], fname=output["first_name"],
-                           lname=output["last_name"], interest=output["primary_skills"], location=output["location"], color=color_codes[COLOR])
+    return render_template("getempoutput.html", id=output.get("emp_id"), fname=output.get("first_name"),
+                           lname=output.get("last_name"), interest=output.get("primary_skills"), 
+                           location=output.get("location"), group_name=group_name, group_slogan=group_slogan,
+                           background_image=BACKGROUND_IMAGE_PATH)
 
 if __name__ == '__main__':
-    
-    # Check for Command Line Parameters for color
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--color', required=False)
-    args = parser.parse_args()
-
-    if args.color:
-        print("Color from command line argument =" + args.color)
-        COLOR = args.color
-        if COLOR_FROM_ENV:
-            print("A color was set through environment variable -" + COLOR_FROM_ENV + ". However, color from command line argument takes precendence.")
-    elif COLOR_FROM_ENV:
-        print("No Command line argument. Color from environment variable =" + COLOR_FROM_ENV)
-        COLOR = COLOR_FROM_ENV
-    else:
-        print("No command line argument or environment variable. Picking a Random Color =" + COLOR)
-
-    # Check if input color is a supported one
-    if COLOR not in color_codes:
-        print("Color not supported. Received '" + COLOR + "' expected one of " + SUPPORTED_COLORS)
-        exit(1)
-
-    app.run(host='0.0.0.0',port=8080,debug=True)
+    # Run Flask app on port 81
+    app.run(host='0.0.0.0', port=81, debug=True)
