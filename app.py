@@ -36,8 +36,20 @@ s3 = boto3.client('s3', region_name=AWS_REGION_NAME)
 BACKGROUND_IMAGE_PATH = 'static/background.jpeg'
 
 # Download a random image from S3 bucket
+@app.before_request
 def download_background_image():
-        s3.download_file(AWS_BUCKET_NAME, random_image_key, BACKGROUND_IMAGE_PATH)
+    s3 = boto3.client('s3', aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key)
+
+    try:
+        # Parse the S3 URL to get the bucket and key
+        key = bg_image_url.split(f'https://{bucket_name}.s3.amazonaws.com/')[1]
+
+        # Download the file from S3 and save it locally
+        s3.download_file(bucket_name, key, BACKGROUND_IMAGE_PATH)
+        print(f"Image downloaded successfully to {BACKGROUND_IMAGE_PATH}")
+
+    except (NoCredentialsError, ClientError) as e:
+        print(f"An error occurred while downloading the image: {e}")
 
 # Route for home page
 @app.route("/", methods=['GET', 'POST'])
