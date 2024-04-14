@@ -2,14 +2,15 @@ from flask import Flask, render_template, request
 from pymysql import connections
 import os
 import boto3
+import logging
 from botocore.exceptions import NoCredentialsError, ClientError
 
 # Initialize Flask app
 app = Flask(__name__)
 
 # Retrieve values from ConfigMap
-bucket_name = os.environ.get('bucket') or "project-clo835-l" 
-bg_image_url = os.environ.get('bgimg') or "https://project-clo835-l.s3.amazonaws.com/background-images-1.jpg" 
+bucket_name = os.environ.get('bucket') or "project-clo835" 
+bg_image_url = os.environ.get('bgimg') or "https://project-clo835.s3.amazonaws.com/101.jpg"  
 group_name = os.environ.get('grpname') or "Group 13" 
 group_slogan = os.environ.get('groupslogan') or "One Day at a Time"
 
@@ -36,10 +37,13 @@ db_conn = connections.Connection(
     db=DATABASE
 )
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 # Download the background image before each request
-# decorator to allow to define a function that will be executed before each request to Flask application
+# Decorator to allow to define a function that will be executed before each request to Flask application
 @app.before_request
 def download_background_image():
+    # Initialize the S3 client
     s3 = boto3.client('s3', aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key)
 
     try:
@@ -48,12 +52,19 @@ def download_background_image():
 
         # Download the file from S3 and save it locally
         s3.download_file(bucket_name, key, BACKGROUND_IMAGE_PATH)
-        print(f"Image downloaded successfully to {BACKGROUND_IMAGE_PATH}")
+        # Log the background image URL
+        logging.info("Image downloaded successfully to %s", BACKGROUND_IMAGE_PATH)
+        logging.info("Background Image URL: %s", bg_image_url)
 
-    except (NoCredentialsError, ClientError) as e:
-        print(f"An error occurred while downloading the image: {e}")
+    except NoCredentialsError:
+        logging.error("AWS credentials are not available. Unable to download the image.")
+    except ClientError as e:
+        logging.error(f"An error occurred while downloading the image: {e}")
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+        
 
-# Define routes for your application
+# Define routes for application
 @app.route("/", methods=['GET', 'POST'])
 def home():
     return render_template('addemp.html', group_name=group_name, group_slogan=group_slogan,
