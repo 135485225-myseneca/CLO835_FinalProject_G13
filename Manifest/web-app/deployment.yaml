@@ -18,7 +18,7 @@ spec:
       serviceAccountName: clo835-final-g13
       containers:
         - name: application-container
-          image: 810910366372.dkr.ecr.us-east-1.amazonaws.com/project:my_app
+          image: 055686730858.dkr.ecr.us-east-1.amazonaws.com/web-app:web_app
           env:
             - name: DBPWD
               valueFrom:
@@ -26,10 +26,7 @@ spec:
                   name: db-config
                   key: DBPWD
             - name: DBUSER
-              valueFrom:
-                secretKeyRef:
-                  name: db-config
-                  key: DBUSER
+              value: "root"
             - name: DBHOST
               value: "my-db-service.final.svc.cluster.local"
             - name: DBPORT
@@ -59,4 +56,4 @@ spec:
           ports:
             - containerPort: 81
       imagePullSecrets:  
-        - name: my-ecr-secret
+        - name: creds-test-2
