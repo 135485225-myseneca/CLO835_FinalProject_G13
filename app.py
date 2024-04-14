@@ -8,14 +8,17 @@ from botocore.exceptions import NoCredentialsError
 # Initialize Flask app
 app = Flask(__name__)
 
-# AWS S3 configuration
-AWS_BUCKET_NAME = 'project-clo835'
-AWS_REGION_NAME = 'us-east-1'
-DBHOST = os.environ.get("DBHOST") or "localhost"
-DBUSER = os.environ.get("DBUSER") or "root"
-DBPWD = os.environ.get("DBPWD") or "password"
-DATABASE = os.environ.get("DATABASE") or "employees"
-DBPORT = int(os.environ.get("DBPORT"))
+DBHOST = os.environ.get("DBHOST")
+DBUSER = os.environ.get("DBUSER")
+DBPWD = os.environ.get("DBPWD")
+DATABASE = os.environ.get("DATABASE")
+DBPORT = int(os.environ.get("DBPORT", '3306'))
+
+# Retrieve values from ConfigMap
+bucket_name = os.environ.get('bucket') 
+bg_image_url = os.environ.get('bgimg')
+group_name = os.environ.get('grpname')
+group_slogan = os.environ.get('groupslogan')
 
 # Create a connection to the MySQL database
 db_conn = connections.Connection(
