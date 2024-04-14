@@ -1,0 +1,1 @@
+#The background image will be downloaded from the S3 bucket inside this folder, and then the image will be rendered by the HTML page.

@@ -5,10 +5,11 @@ WORKDIR /app
 RUN set -xe \
     && apt-get update -y \
     && apt-get install -y python3-pip \
-    && apt-get install -y mysql-client 
+    && apt-get install -y mysql-client \
+    && pip3 install boto3 flask
 RUN pip install --upgrade pip
 RUN pip3 install flask
 RUN pip install -r requirements.txt
-EXPOSE 8080
+EXPOSE 81
 ENTRYPOINT [ "python3" ]
 CMD [ "app.py" ]

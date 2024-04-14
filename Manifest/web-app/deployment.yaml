@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: application
+  namespace: final
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: employees
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: employees
+        component: frontend
+    spec:
+      serviceAccountName: clo835-final-g13
+      containers:
+        - name: application-container
+          image: 810910366372.dkr.ecr.us-east-1.amazonaws.com/project:my_app
+          env:
+            - name: DBPWD
+              valueFrom:
+                secretKeyRef:
+                  name: db-config
+                  key: DBPWD
+            - name: DBUSER
+              valueFrom:
+                secretKeyRef:
+                  name: db-config
+                  key: DBUSER
+            - name: DBHOST
+              value: "my-db-service.final.svc.cluster.local"
+            - name: DBPORT
+              value: "3306"
+            - name: DATABASE
+              value: "employees"
+            - name: bucket
+              valueFrom:
+                configMapKeyRef:
+                  name: configmap
+                  key: bucket
+            - name: bgimg
+              valueFrom:
+                configMapKeyRef:
+                  name: configmap
+                  key: bgimg
+            - name: grpname
+              valueFrom:
+                configMapKeyRef:
+                  name: configmap
+                  key: grpname
+            - name: groupslogan
+              valueFrom:
+                configMapKeyRef:
+                  name: configmap
+                  key: groupslogan
+          ports:
+            - containerPort: 81
+      imagePullSecrets:  
+        - name: my-ecr-secret
