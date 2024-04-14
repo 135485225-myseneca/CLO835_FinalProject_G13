@@ -31,30 +31,10 @@ spec:
                   name: db-config
                   key: DBUSER
             - name: DBHOST
-              value: "mysql.final.svc.cluster.local"
+              value: "my-db-service.final.svc.cluster.local"
             - name: DBPORT
               value: "3306"
-            - name: BUCKETNAME
-              valueFrom:
-                configMapKeyRef:
-                  name: configmap
-                  key: bucket
-            - name: BGIMG
-              valueFrom:
-                configMapKeyRef:
-                  name: configmap
-                  key: bgimg
-            - name: GRPNAME
-              valueFrom:
-                configMapKeyRef:
-                  name: configmap
-                  key: grpname
-            - name: GROUPSLOGAN
-              valueFrom:
-                configMapKeyRef:
-                  name: configmap
-                  key: groupslogan
           ports:
             - containerPort: 81
-      imagePullSecrets:  
+      imagePullSecrets:
         - name: my-ecr-secret
