@@ -18,7 +18,7 @@ spec:
       serviceAccountName: clo835-final-g13
       containers:
         - name: application-container
-          image: 055686730858.dkr.ecr.us-east-1.amazonaws.com/web-app:web_app
+          image: 810910366372.dkr.ecr.us-east-1.amazonaws.com/project:my_app
           env:
             - name: DBPWD
               valueFrom:
@@ -34,7 +34,27 @@ spec:
               value: "my-db-service.final.svc.cluster.local"
             - name: DBPORT
               value: "3306"
+            - name: bucket
+              valueFrom:
+                configMapKeyRef:
+                  name: configmap
+                  key: bucket
+            - name: bgimg
+              valueFrom:
+                configMapKeyRef:
+                  name: configmap
+                  key: bgimg
+            - name: grpname
+              valueFrom:
+                configMapKeyRef:
+                  name: configmap
+                  key: grpname
+            - name: groupslogan
+              valueFrom:
+                configMapKeyRef:
+                  name: configmap
+                  key: groupslogan
           ports:
             - containerPort: 81
-      imagePullSecrets:
+      imagePullSecrets:  
         - name: my-ecr-secret
