@@ -17,31 +17,10 @@ spec:
     spec:
       containers:
       - name: mysql
-        image: 584918656742.dkr.ecr.us-east-1.amazonaws.com/mysql-db
+        image: 055686730858.dkr.ecr.us-east-1.amazonaws.com/mysql-db:my_db
         ports:
         - containerPort: 3306
         env:
-        # Reference the db-config secret
-        - name: DBHOST
-          valueFrom:
-            secretKeyRef:
-              name: db-config
-              key: DBHOST
-        - name: DBUSER
-          valueFrom:
-            secretKeyRef:
-              name: db-config
-              key: DBUSER
-        - name: DBPWD
-          valueFrom:
-            secretKeyRef:
-              name: db-config
-              key: DBPWD
-        - name: DATABASE
-          valueFrom:
-            secretKeyRef:
-              name: db-config
-              key: DATABASE
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -51,7 +30,7 @@ spec:
         - mountPath: /tmp/data
           name: final-pv
       imagePullSecrets:
-      - name: creds-test
+      - name: creds-test-1
       volumes:
       - name: final-pv
         persistentVolumeClaim:
