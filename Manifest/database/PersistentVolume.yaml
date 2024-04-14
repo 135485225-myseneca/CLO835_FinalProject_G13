@@ -1,16 +1,14 @@
-kind: PersistentVolume
 apiVersion: v1
+kind: PersistentVolume
 metadata:
   name: final-pv
-  namespace: final
 spec:
   capacity:
     storage: 2Gi
   volumeMode: Filesystem
   accessModes:
     - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Delete
+  persistentVolumeReclaimPolicy: Retain
   storageClassName: standard
-  awsElasticBlockStore:
-    volumeID: "vol-08439e1e1b23d34fb"
-    fsType: ext4
+  hostPath:
+    path: /tmp/data
