@@ -1,7 +1,7 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: app-final-pvc
+  name:  app-final-pvc
   namespace: final
   labels:
     app: final_g13
@@ -12,3 +12,4 @@ spec:
   resources:
     requests:
       storage: 2Gi
+  volumeName: final-pv
