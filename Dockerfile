@@ -9,6 +9,6 @@ RUN set -xe \
 RUN pip install --upgrade pip
 RUN pip3 install flask
 RUN pip install -r requirements.txt
-EXPOSE 8080
+EXPOSE 81
 ENTRYPOINT [ "python3" ]
 CMD [ "app.py" ]
